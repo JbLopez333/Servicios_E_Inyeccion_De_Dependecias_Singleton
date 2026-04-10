@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔧 Service Locator - DI Singleton COMPLETO</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1a1a2e;
+            color: #00ff88;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #16213e;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 0 30px rgba(0,255,136,0.3);
+        }
+        h1 { 
+            text-align: center; 
+            color: #00ff88; 
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px #00ff88;
+        }
+        h2 { 
+            color: #ff6b6b; 
+            border-left: 5px solid #ff6b6b;
+            padding-left: 20px;
+            margin: 30px 0 15px;
+            font-size: 1.5em;
+        }
+        h3 { 
+            color: #4ecdc4; 
+            margin: 20px 0 10px;
+        }
+        pre {
+            background: #0f3460;
+            border: 2px solid #00ff88;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-size: 14px;
+            position: relative;
+        }
+        .code-line {
+            counter-increment: line;
+            padding-left: 30px;
+            position: relative;
+        }
+        .code-line::before {
+            content: counter(line);
+            position: absolute;
+            left: 5px;
+            top: 0;
+            background: #00ff88;
+            color: #16213e;
+            width: 25px;
+            height: 20px;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        .highlight { background: rgba(255,255,0,0.2) !important; }
+        .demo-btn {
+            background: linear-gradient(45deg, #00ff88, #4ecdc4);
+            color: #16213e;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0,255,136,0.4);
+            transition: all 0.3s;
+        }
+        .demo-btn:hover { transform: scale(1.05); box-shadow: 0 10px 25px rgba(0,255,136,0.6); }
+        .output {
+            background: #0f3460;
+            border: 2px solid #ff6b6b;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 100px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            max-height: 300px;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .success { background: rgba(0,255,136,0.2); border: 2px solid #00ff88; color: #00ff88; }
+        .singleton { background: rgba(255,107,107,0.2); border: 2px solid #ff6b6b; color: #ff6b6b; }
+        .di { background: rgba(78,205,196,0.2); border: 2px solid #4ecdc4; color: #4ecdc4; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Service Locator + DI + Singleton</h1>
+        <p style="text-align: center; font-size: 1.2em; color: #ccc;">
+        </p>
+
+        <button class="demo-btn" onclick="runFullDemo()">▶️ EJECUTAR DEMO COMPLETO</button>
+        <div id="output" class="output" style="display: none;"></div>
+
+        <!-- =========================================== -->
+        <!-- 1. SINGLETON - ServiceLocator               -->
+        <!-- =========================================== -->
+        <h2>1️⃣ SINGLETON - ServiceLocator</h2>
+        <pre><code id="singleton-code">
+<span class="code-line highlight">// ← SINGLETON: Una sola instancia global</span>
+class ServiceLocator {
+  static instance = null;                    <span class="highlight">// ← Memoria estática</span>
+  services = new Map();                      <span class="highlight">// ← Registro de servicios</span>
+
+  constructor() {
+    if (ServiceLocator.instance) {           <span class="highlight">// ← ¿Ya existe?</span>
+      return ServiceLocator.instance;        <span class="highlight">// ← RETORNA la existente</span>
+    }
+    ServiceLocator.instance = this;          <span class="highlight">// ← Crea SOLO UNA vez</span>
+  }
+
+  static getInstance() {                     <span class="highlight">// ← Acceso global</span>
+    return new ServiceLocator();
+  }
+
+  register(name, service) {                  <span class="highlight">// ← REGISTRAR servicio</span>
+    this.services.set(name, service);
+  }
+
+  get(name) {                                <span class="highlight">// ← OBTENER servicio (DI)</span>
+    const service = this.services.get(name);
+    if (!service) throw new Error(`Servicio ${name} no encontrado`);
+    return service;
+  }
+}
+        </code></pre>
+
+        <!-- =========================================== -->
+        <!-- 2. SERVICIOS con DI                        -->
+        <!-- =========================================== -->
+        <h2>2️⃣ SERVICIOS con Inyección de Dependencias</h2>
+        <pre><code id="services-code">
+<span class="code-line">// ← SERVICIO 1: Logger</span>
+class LoggerService {
+  log(message) {
+    const msg = `[LOG] ${new Date().toISOString()}: ${message}`;
+    console.log(msg);
+    return msg;                              <span class="highlight">// ← Retorna para mostrar</span>
+  }
+  
+  error(message) {
+    const msg = `[ERROR] ${message}`;
+    console.error(msg);
+    return msg;
+  }
+}
+
+<span class="code-line">// ← SERVICIO 2: UserService (DEPENDE de Logger)</span>
+class UserService {
+  constructor() {
+    this.logger = ServiceLocator.getInstance().get('logger');  <span class="highlight">// ← 🔥 DI AUTOMÁTICA</span>
+  }
+  
+  createUser(name, email) {
+    this.logger.log(`Creando: ${name}`);                      <span class="highlight">// ← Usa Logger inyectado</span>
+    const user = {
+      id: Math.floor(Math.random() * 1000),
+      name, email
+    };
+    this.logger.log(`Usuario creado: ${user.id}`);
+    return user;
+  }
+  
+  getUser(id) {
+    this.logger.log(`Buscando usuario ${id}`);
+    return { id, name: `Usuario ${id}`, email: `user${id}@app.com` };
+  }
+}
+
+<span class="code-line">// ← SERVICIO 3: EmailService (DEPENDE de Logger)</span>
+class EmailService {
+  constructor() {
+    this.logger = ServiceLocator.getInstance().get('logger');  <span class="highlight">// ← 🔥 DI AUTOMÁTICA</span>
+  }
+  
+  sendWelcome(user) {
+    this.logger.log(`📧 Enviando email a ${user.email}`);
+    return `✅ Email enviado a ${user.email}`;
+  }
+}
+        </code></pre>
+
+        <!-- =========================================== -->
+        <!-- 3. USO COMPLETO                            -->
+        <!-- =========================================== -->
+        <h2>3️⃣ USO COMPLETO - Inicialización</h2>
+        <pre><code id="usage-code">
+<span class="code-line">// ← Inicializar TODO</span>
+function initializeApp() {
+  const locator = ServiceLocator.getInstance();     <span class="highlight">// ← SINGLETON</span>
+  
+  locator.register('logger', new LoggerService());  <span class="highlight">// ← REGISTRAR Logger</span>
+  locator.register('userService', new UserService()); <span class="highlight">// ← UserService (tiene Logger)</span>
+  locator.register('emailService', new EmailService()); <span class="highlight">// ← EmailService (tiene Logger)</span>
+  
+  return locator;
+}
+        </code></pre>
+
+        <button class="demo-btn" onclick="copyAllCode()">📋 COPIAR TODO EL CÓDIGO</button>
+    </div>
+
+    <!-- =========================================== -->
+    <!-- JAVASCRIPT - CÓDIGO REAL FUNCIONANDO       -->
+    <!-- =========================================== -->
+    <script>
+        // ===== CÓDIGO 1: SINGLETON ServiceLocator =====
+        class ServiceLocator {
+            static instance = null;
+            services = new Map();
+
+            constructor() {
+                if (ServiceLocator.instance) {
+                    return ServiceLocator.instance;
+                }
+                ServiceLocator.instance = this;
+            }
+
+            static getInstance() {
+                return new ServiceLocator();
+            }
+
+            register(name, service) {
+                this.services.set(name, service);
+            }
+
+            get(name) {
+                const service = this.services.get(name);
+                if (!service) throw new Error(`Servicio ${name} no encontrado`);
+                return service;
+            }
+        }
+
+        // ===== CÓDIGO 2: SERVICIOS =====
+        class LoggerService {
+            log(message) {
+                const msg = `[LOG 🟢] ${new Date().toISOString().slice(11,19)}: ${message}`;
+                console.log(msg);
+                return msg;
+            }
+            error(message) {
+                const msg = `[ERROR 🔴] ${message}`;
+                console.error(msg);
+                return msg;
+            }
+        }
+
+        class UserService {
+            constructor() {
+                this.logger = ServiceLocator.getInstance().get('logger');  // 🔥 DI
+            }
+            createUser(name, email) {
+                this.logger.log(`👤 Creando: ${name}`);
+                const user = { id: Math.floor(Math.random() * 1000), name, email };
+                this.logger.log(`✅ Usuario creado ID: ${user.id}`);
+                return user;
+            }
+            getUser(id) {
+                this.logger.log(`🔍 Buscando ID: ${id}`);
+                return { id, name: `Usuario ${id}`, email: `user${id}@app.com` };
+            }
+        }
+
+        class EmailService {
+            constructor() {
+                this.logger = ServiceLocator.getInstance().get('logger');  // 🔥 DI
+            }
+            sendWelcome(user) {
+                this.logger.log(`📧 Email → ${user.email}`);
+                return `✅ Email enviado a ${user.email}`;
+            }
+        }
+
+        // ===== CÓDIGO 3: FUNCIONES DE DEMO =====
+        function initializeApp() {
+            const locator = ServiceLocator.getInstance();
+            locator.register('logger', new LoggerService());
+            locator.register('userService', new UserService());
+            locator.register('emailService', new EmailService());
+            return locator;
+        }
+
+        function runFullDemo() {
+            const output = document.getElementById('output');
+            output.style.display = 'block';
+            output.textContent = '';
+
+            try {
+                // 1. SINGLETON
+                const locator1 = ServiceLocator.getInstance();
+                const locator2 = ServiceLocator.getInstance();
+                output.textContent += `🔸 SINGLETON: ${locator1 === locator2 ? '✅ MISMA INSTANCIA' : '❌ DIFERENTE'}\n\n`;
+
+                // 2. INICIALIZAR
+                const locator = initializeApp();
+                output.textContent += `🔸 Servicios registrados: ${locator.services.size}\n\n`;
+
+                // 3. USAR SERVICIOS
+                const logger = locator.get('logger');
+                const userService = locator.get('userService');
+                const emailService = locator.get('emailService');
+
+                output.textContent += `${logger.log('🚀 DEMO INICIADA')}\n`;
+
+                // 4. CREAR USUARIO
+                const user = userService.createUser('MARÍA GARCÍA', 'maria@empresa.com');
+                output.textContent += `👤 Nuevo usuario: ${user.name} (ID: ${user.id})\n\n`;
+
+                // 5. BUSCAR USUARIO
+                const foundUser = userService.getUser(user.id);
+                output.textContent += `📋 Encontrado: ${foundUser.name}\n\n`;
+
+                // 6. ENVIAR EMAIL
+                const emailResult = emailService.sendWelcome(user);
+                output.textContent += `${emailResult}\n\n`;
+
+                output.textContent += `${logger.log('🎉 DEMO COMPLETA - DI + Singleton FUNCIONANDO ✅')}\n`;
+                output.textContent += `\n🔥 UserService tiene Logger inyectado automáticamente\n`;
+                output.textContent += `🔥 EmailService tiene Logger inyectado automáticamente\n`;
+
+            } catch (error) {
+                output.textContent = `❌ ERROR: ${error.message}`;
+            }
+        }
+
+        function copyAllCode() {
+            const code = `// Service Locator Completo - Copia todo esto\n\n` +
+                document.getElementById('singleton-code').textContent + '\n\n' +
+                document.getElementById('services-code').textContent + '\n\n' +
+                document.getElementById('usage-code').textContent;
+            
+            navigator.clipboard.writeText(code).then(() => {
+                alert('✅ ¡TODO EL CÓDIGO COPIADO! (ServiceLocator + 3 Servicios + DI)');
+            });
+        }
+
+        // Auto-ejecutar al cargar
+        window.onload = () => setTimeout(runFullDemo, 500);
+    </script>
+</body>
+</html>
