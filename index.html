@@ -7,34 +7,53 @@
         body {
             font-family: Arial, sans-serif;
             margin: 40px;
-            background-color: #f4f6f8;
-            color: #333;
+            background-color: #eef2f5;
+            color: #444;
+            transition: background-color 0.4s ease;
         }
         h1, h2 {
-            color: #2c3e50;
+            color: #5a6d7c;
         }
         section {
-            background: white;
+            background: #ffffff;
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            box-shadow: 0px 3px 8px rgba(0,0,0,0.08);
             margin-bottom: 20px;
+            transition: transform 0.25s ease;
+        }
+        section:hover {
+            transform: translateY(-3px);
         }
         button {
             padding: 10px 15px;
             border: none;
-            background-color: #27ae60;
-            color: white;
-            border-radius: 5px;
+            background-color: #9fd3b3;
+            color: #2c3e50;
+            border-radius: 6px;
             cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
         }
         button:hover {
-            background-color: #1e8449;
+            background-color: #87c4a2;
         }
         code {
-            background: #eee;
+            background: #e8ecef;
             padding: 4px;
             border-radius: 4px;
+        }
+        #contador {
+            margin-top: 10px;
+            font-weight: bold;
+            color: #6c8a9b;
+        }
+        .tema-oscuro {
+            background-color: #2f3e46;
+            color: #e0e6ea;
+        }
+        .tema-oscuro section {
+            background-color: #3b4f57;
         }
     </style>
 </head>
@@ -72,24 +91,31 @@
     <section>
         <h2>Ejemplo interactivo</h2>
         <p>
-            Simulamos un servicio Singleton que guarda un contador. No importa cuántas veces lo uses,
-            siempre será la misma instancia.
+            Simulamos un servicio Singleton que guarda un contador.
         </p>
 
-        <button onclick="incrementar()">Incrementar contador</button>
+        <button onclick="incrementar()">Incrementar</button>
+        <button onclick="reiniciar()">Reiniciar</button>
+        <button onclick="cambiarTema()">Cambiar tema</button>
+
         <p id="contador">Contador: 0</p>
+        <p id="mensaje"></p>
     </section>
 
     <script>
         // Servicio Singleton
         const ContadorService = (function() {
             let instancia;
-            
+
             function crearInstancia() {
                 return {
                     valor: 0,
                     incrementar: function() {
                         this.valor++;
+                        return this.valor;
+                    },
+                    reiniciar: function() {
+                        this.valor = 0;
                         return this.valor;
                     }
                 };
@@ -107,8 +133,34 @@
 
         function incrementar() {
             const servicio = ContadorService.getInstancia();
-            const nuevoValor = servicio.incrementar();
-            document.getElementById("contador").innerText = "Contador: " + nuevoValor;
+            const valor = servicio.incrementar();
+
+            actualizarUI(valor);
+
+            if (valor === 5) {
+                mostrarMensaje("💡 Ya vas entendiendo cómo funciona un Singleton.");
+            } else if (valor === 10) {
+                mostrarMensaje("🚀 Estás reutilizando la misma instancia correctamente.");
+            }
+        }
+
+        function reiniciar() {
+            const servicio = ContadorService.getInstancia();
+            const valor = servicio.reiniciar();
+            actualizarUI(valor);
+            mostrarMensaje("🔄 Contador reiniciado, pero sigue siendo la misma instancia.");
+        }
+
+        function actualizarUI(valor) {
+            document.getElementById("contador").innerText = "Contador: " + valor;
+        }
+
+        function mostrarMensaje(texto) {
+            document.getElementById("mensaje").innerText = texto;
+        }
+
+        function cambiarTema() {
+            document.body.classList.toggle("tema-oscuro");
         }
     </script>
 
